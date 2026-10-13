@@ -1,0 +1,13 @@
+# One service. One command: docker compose up --build
+# Default embedder is hashing (no download). For MiniLM:
+#   WITH_MINILM=1 EMBEDDER=minilm docker compose up --build
+services:
+  rag:
+    build:
+      context: .
+      args:
+        WITH_MINILM: ${WITH_MINILM:-0}
+    environment:
+      EMBEDDER: ${EMBEDDER:-hashing}
+    ports:
+      - "8000:8000"

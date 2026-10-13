@@ -2,19 +2,25 @@
   {
     "id": "q1",
     "question": "How long do I have to return an unused item?",
-    "expected_docs": ["returns#0"],
+    "expected_docs": [
+      "returns#0"
+    ],
     "should_abstain": false
   },
   {
     "id": "q2",
     "question": "What does the Growth plan cost per month?",
-    "expected_docs": ["pricing#0"],
+    "expected_docs": [
+      "pricing#0"
+    ],
     "should_abstain": false
   },
   {
     "id": "q3",
     "question": "Is there weekend phone support on Starter?",
-    "expected_docs": ["support#0"],
+    "expected_docs": [
+      "support#0"
+    ],
     "should_abstain": false
   },
   {

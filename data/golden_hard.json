@@ -1,0 +1,40 @@
+[
+  {
+    "id": "q5",
+    "question": "When will my refund reach my card?",
+    "expected_docs": [
+      "returns#0"
+    ],
+    "should_abstain": false
+  },
+  {
+    "id": "q6",
+    "question": "Is there a once-off setup fee?",
+    "expected_docs": [
+      "pricing#0"
+    ],
+    "should_abstain": false
+  },
+  {
+    "id": "q7",
+    "question": "What time does the help desk open on weekdays?",
+    "expected_docs": [
+      "support#0"
+    ],
+    "should_abstain": false
+  },
+  {
+    "id": "q8",
+    "question": "Can I send back a gift card?",
+    "expected_docs": [
+      "returns#0"
+    ],
+    "should_abstain": false
+  },
+  {
+    "id": "q9",
+    "question": "Who is the CEO of the company?",
+    "expected_docs": [],
+    "should_abstain": true
+  }
+]
