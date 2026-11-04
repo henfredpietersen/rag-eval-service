@@ -78,9 +78,19 @@ How to read it:
 - Latency is sub-millisecond, noisy run to run, and excludes any LLM call. Do not quote it.
 - n=4 and n=5. These are smoke tests, not a benchmark.
 
+## Web demo
+
+`docs/walkthrough.js` is an interactive page that runs `app/chunk.py`, `embed.py`, `store.py`, `rag.py`, `eval.py` and `web/driver.py`, unchanged, in the visitor's browser with [Pyodide](https://pyodide.org), using the hashing embedder. It shows each question's content words, the retrieved chunks with their scores and gate overlap, and runs `run_eval` on both golden sets live. The MiniLM column says "not measured" because MiniLM has never been run on these sets.
+
+```bash
+python web/build.py        # rebuilds docs/walkthrough.js from web/page.js, app/ and data/
+```
+
+`tests/test_web_demo.py` fails if the built page is out of date, checks every example on the page behaves as its note says, and checks the live eval reproduces the numbers above. Every page question and both evals were also run in Pyodide 0.26.4 under Node and matched CPython exactly.
+
 ## Tests
 
-`tests/test_rag.py` (original) and `tests/test_embedders.py`:
+`tests/test_rag.py` (original), `tests/test_embedders.py` and `tests/test_web_demo.py` (21 pass, 1 skipped):
 
 - MiniLM import stays lazy. A missing package raises a clear `EmbedderUnavailable`.
 - A stub `SentenceTransformer` proves MiniLM plugs into the same store and eval. It tests the wiring, not the quality.
