@@ -1,5 +1,7 @@
 # rag-eval-service
 
+**Try it live:** [outview.co.za/case-study-rag-eval](https://outview.co.za/case-study-rag-eval/). Ask questions, see what it retrieves and why it answers or refuses, and run the golden-set eval in your browser.
+
 ## Problem
 
 A retrieval-augmented answering service needs to (a) find the right document, (b) refuse when the documents do not contain the answer, and (c) let you change one component and re-score it on the same questions. This repo is a small version of that loop: chunk, embed, retrieve, abstain, answer, score.
@@ -80,7 +82,7 @@ How to read it:
 
 ## Web demo
 
-`docs/walkthrough.js` is an interactive page that runs `app/chunk.py`, `embed.py`, `store.py`, `rag.py`, `eval.py` and `web/driver.py`, unchanged, in the visitor's browser with [Pyodide](https://pyodide.org), using the hashing embedder. It shows each question's content words, the retrieved chunks with their scores and gate overlap, and runs `run_eval` on both golden sets live. The MiniLM column says "not measured" because MiniLM has never been run on these sets.
+`docs/walkthrough.js` ([live](https://outview.co.za/case-study-rag-eval/)) is an interactive page that runs `app/chunk.py`, `embed.py`, `store.py`, `rag.py`, `eval.py` and `web/driver.py`, unchanged, in the visitor's browser with [Pyodide](https://pyodide.org), using the hashing embedder. It shows each question's content words, the retrieved chunks with their scores and gate overlap, and runs `run_eval` on both golden sets live. The MiniLM column says "not measured" because MiniLM has never been run on these sets.
 
 ```bash
 python web/build.py        # rebuilds docs/walkthrough.js from web/page.js, app/ and data/
