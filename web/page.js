@@ -82,7 +82,7 @@
     ".callout{border-left:3px solid var(--warn);background:rgba(251,191,36,.08);padding:10px 12px;border-radius:8px;color:#fde68a;font-size:.88rem;margin-top:12px}",
     "ul.plain{margin:8px 0 0;padding-left:18px;color:var(--dim)}ul.plain li{margin:6px 0}",
     ".foot{margin-top:44px;padding-top:20px;border-top:1px solid var(--line);font-size:.86rem}",
-    "@media (max-width:520px){.ask{flex-direction:column}.btn{width:100%}th{white-space:normal}td.m{min-width:120px}}"
+    "@media (max-width:520px){.ask{flex-direction:column}.btn{width:100%}th{white-space:normal}th,td{padding:7px 7px}td.m{min-width:0}table{font-size:.8rem}}"
   ].join("");
 
   var EXAMPLES = [
