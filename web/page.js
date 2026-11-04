@@ -146,13 +146,13 @@
     "<div class='card'><ul class='plain'>" +
     "<li><b>Hit@3 is meaningless here.</b> The whole corpus is 3 chunks and it retrieves 3, so the right one is always \"found\". Hit@1, the right document ranked first, is the retrieval number that means something.</li>" +
     "<li><b>Faithfulness of 1.0 is built in.</b> The reader copies a sentence straight from the retrieved text, so it can't say anything that isn't there. The metric only becomes useful once a generative model writes the answer.</li>" +
-    "<li><b>The paraphrase set shows the real weakness.</b> The gate refuses 3 of the 4 answerable questions because they don't reuse the documents' words. A better embedder would improve Hit@1 but wouldn't fix these refusals, because the gate checks words, not the embedding score. The fix is a similarity threshold tuned per embedder on labelled data. That work isn't done.</li>" +
+    "<li><b>The paraphrase set shows the real weakness.</b> The gate refuses 3 of the 4 answerable questions because they don't reuse the documents' words. I predicted a better embedder would improve Hit@1 but not fix these refusals, because the gate checks words, not the embedding score. MiniLM confirmed it: Hit@1 went from 0.75 to 1.0 on this set, and it refused the same 3 questions. The fix is a similarity threshold tuned per embedder on labelled data. That work isn't done.</li>" +
     "<li><b>4 and 5 questions are smoke tests, not a benchmark.</b> Treat every number here as a demonstration of the scoring loop, not a quality claim.</li>" +
     "</ul></div></section>" +
 
     "<section class='step'><div class='num'>4</div><h2>What it doesn't do</h2>" +
     "<div class='card'><ul class='plain'>" +
-    "<li><b>The embedder here is a hashing trick, not a language model.</b> The repo also supports MiniLM (sentence-transformers) behind the same interface. It has never been scored: the workspace that built this couldn't download the model weights, so its column says \"not measured\".</li>" +
+    "<li><b>The live embedder here is a hashing trick, not a language model.</b> The repo also supports MiniLM (sentence-transformers) behind the same interface. It can't run in a browser, so its scores were recorded on GitHub's servers and are shown next to the live ones. On 9 questions they say little beyond confirming where the refusals come from.</li>" +
     "<li><b>Punctuation sticks to words.</b> The gate splits on spaces, so \"card?\" doesn't match \"card\". It's one reason short questions get refused.</li>" +
     "<li><b>Answers are extracted, not written.</b> The best-matching sentence is returned as-is, sometimes with a heading attached.</li>" +
     "<li><b>Three tiny documents.</b> Enough to show the loop working, nowhere near a real knowledge base.</li>" +
@@ -195,7 +195,16 @@
 
   function yn(v) { return v == null ? "<span class='dimc'>n/a</span>" : v ? "<span class='ok'>yes</span>" : "<span class='bad'>no</span>"; }
 
-  function renderEval(r, label) {
+  // MiniLM scores recorded by .github/workflows/minilm-compare.yml (results/compare.md).
+  // MiniLM can't run in the browser, so these are the recorded figures, not a live run.
+  // tests/test_web_demo.py checks they match results/compare.md.
+  var MINILM = {
+    golden: { hit_rate_at_1: 1.0, retrieval_hit_rate: 1.0, abstain_accuracy: 1.0, mean_faithfulness: 1.0 },
+    golden_hard: { hit_rate_at_1: 1.0, retrieval_hit_rate: 1.0, abstain_accuracy: 0.4, mean_faithfulness: 1.0 }
+  };
+
+  function renderEval(r, label, name) {
+    var mini = MINILM[name] || {};
     var rows = r.rows.map(function (x) {
       var expect = x.should_abstain ? "refuse" : x.expected_docs.join(", ");
       var did = x.abstained ? "refused" : "answered";
@@ -204,18 +213,18 @@
         "</td><td class='nw'>" + esc(did) + " " + (x.abstain_ok ? "<span class='ok'>✓</span>" : "<span class='bad'>✕</span>") + "</td></tr>";
     }).join("");
     var m = [
-      ["Hit@1 (right doc ranked first)", r.hit_rate_at_1],
-      ["Hit@3 (right doc in top 3)", r.retrieval_hit_rate],
-      ["Refused or answered correctly", r.abstain_accuracy],
-      ["Faithfulness", r.mean_faithfulness]
+      ["Hit@1 (right doc ranked first)", r.hit_rate_at_1, mini.hit_rate_at_1],
+      ["Hit@3 (right doc in top 3)", r.retrieval_hit_rate, mini.retrieval_hit_rate],
+      ["Refused or answered correctly", r.abstain_accuracy, mini.abstain_accuracy],
+      ["Faithfulness", r.mean_faithfulness, mini.mean_faithfulness]
     ].map(function (p) {
-      return "<tr><td class='m'>" + esc(p[0]) + "</td><td class='n'><b>" + (p[1] == null ? "n/a" : esc(p[1])) + "</b></td><td class='dimc'>not measured</td></tr>";
+      return "<tr><td class='m'>" + esc(p[0]) + "</td><td class='n'><b>" + (p[1] == null ? "n/a" : esc(p[1])) + "</b></td><td class='n'>" + (p[2] == null ? "n/a" : esc(p[2])) + "</td></tr>";
     }).join("");
     $("#evout").innerHTML =
       "<h3 style='margin-top:18px'>" + esc(label) + ": " + r.n + " questions</h3>" +
       "<div class='tbl'><table><thead><tr><th>ID</th><th>Question</th><th>Expected</th><th>Ranked first</th><th>Hit@1</th><th>Refused right?</th></tr></thead><tbody>" + rows + "</tbody></table></div>" +
-      "<div class='tbl'><table><thead><tr><th>Metric</th><th>Hashing (live)</th><th>MiniLM</th></tr></thead><tbody>" + m + "</tbody></table></div>" +
-      "<p style='font-size:.84rem;margin-top:10px'>Computed in your browser by the repo's <code>run_eval</code>, with the same inputs as <code>make eval</code>. MiniLM has never been run on these sets (see section 4).</p>";
+      "<div class='tbl'><table><thead><tr><th>Metric</th><th>Hashing (live)</th><th>MiniLM (recorded)</th></tr></thead><tbody>" + m + "</tbody></table></div>" +
+      "<p style='font-size:.84rem;margin-top:10px'>Computed in your browser by the repo's <code>run_eval</code>, with the same inputs as <code>make eval</code>. The MiniLM column was recorded by <code>make compare</code> on GitHub's servers, because MiniLM can't run in a browser. MiniLM ranks the right document first more often, but it refuses exactly the same questions: the refusals come from the word-overlap gate, not the embedder.</p>";
   }
 
   var py = null, busy = false;
@@ -233,7 +242,7 @@
   function evaluate(name, label) {
     if (!py || busy) return;
     busy = true;
-    try { renderEval(call("demo_driver.evaluate(_n)", { _n: name }), label); }
+    try { renderEval(call("demo_driver.evaluate(_n)", { _n: name }), label, name); }
     catch (e) { $("#evout").innerHTML = "<p class='bad'>Something went wrong: " + esc(e && e.message) + "</p>"; }
     busy = false;
   }

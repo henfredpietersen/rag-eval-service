@@ -69,3 +69,17 @@ def test_live_eval_matches_readme_numbers():
     hard = json.loads(driver.evaluate("golden_hard"))
     assert (hard["hit_rate_at_1"], hard["retrieval_hit_rate"], hard["abstain_accuracy"]) == (0.75, 1.0, 0.4)
     assert [r["id"] for r in hard["rows"] if r["abstained"]] == ["q5", "q7", "q8", "q9"]
+
+
+def test_recorded_minilm_figures_match_the_workflow_output():
+    """The page shows MiniLM scores it can't compute in a browser; they must equal results/compare.md."""
+    import re
+
+    md = (ROOT / "results" / "compare.md").read_text(encoding="utf-8")
+    js = (ROOT / "web" / "page.js").read_text(encoding="utf-8")
+    for name in ("golden", "golden_hard"):
+        section = md.split(f"### {name}.json")[1].split("###")[0]
+        recorded = {m: float(v) for m, _, v in re.findall(r"\| (\w+) \| ([\d.]+) \| ([\d.]+) \|", section)}
+        page = re.search(name + r": \{([^}]*)\}", js).group(1)
+        shown = {k: float(v) for k, v in re.findall(r"(\w+): ([\d.]+)", page)}
+        assert shown and all(recorded[k] == v for k, v in shown.items()), (name, shown, recorded)

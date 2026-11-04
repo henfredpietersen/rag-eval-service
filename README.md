@@ -41,34 +41,34 @@ WITH_MINILM=1 EMBEDDER=minilm docker compose up --build
 
 ## Measured
 
-Output of `make compare` in this repo, pasted unedited. Run on a cloud workspace with no GPU. HuggingFace was blocked from that workspace, so MiniLM could not load and shows "not measured". Run `make compare` on a machine with internet access to fill that column.
+Output of `make compare`, run on GitHub's servers by `.github/workflows/minilm-compare.yml` on 4 November 2026 (sentence-transformers 6.2.0, CPU only, `all-MiniLM-L6-v2` at revision `1110a243`). The full output, with versions, is in [`results/compare.md`](results/compare.md). The cloud workspace this was built in can't download model weights, which is why MiniLM runs there instead. Re-run it from the Actions tab at any time.
 
 ```
 ### golden.json (n=4, k=3)
 
 | metric | hashing | minilm |
 | --- | --- | --- |
-| retrieval_hit_rate | 1.0 | not measured |
-| hit_rate_at_1 | 0.667 | not measured |
-| mean_faithfulness | 1.0 | not measured |
-| abstain_accuracy | 1.0 | not measured |
-| mean_latency_ms | 0.15 | not measured |
+| retrieval_hit_rate | 1.0 | 1.0 |
+| hit_rate_at_1 | 0.667 | 1.0 |
+| mean_faithfulness | 1.0 | 1.0 |
+| abstain_accuracy | 1.0 | 1.0 |
+| mean_latency_ms | 0.16 | 10.09 |
 
 hashing: abstained on ['q4']
-minilm: not measured (sentence-transformers is not installed. pip install -r requirements-minilm.txt)
+minilm: abstained on ['q4']
 
 ### golden_hard.json (n=5, k=3)
 
 | metric | hashing | minilm |
 | --- | --- | --- |
-| retrieval_hit_rate | 1.0 | not measured |
-| hit_rate_at_1 | 0.75 | not measured |
-| mean_faithfulness | 1.0 | not measured |
-| abstain_accuracy | 0.4 | not measured |
-| mean_latency_ms | 0.12 | not measured |
+| retrieval_hit_rate | 1.0 | 1.0 |
+| hit_rate_at_1 | 0.75 | 1.0 |
+| mean_faithfulness | 1.0 | 1.0 |
+| abstain_accuracy | 0.4 | 0.4 |
+| mean_latency_ms | 0.13 | 9.77 |
 
 hashing: abstained on ['q5', 'q7', 'q8', 'q9']
-minilm: not measured (sentence-transformers is not installed. pip install -r requirements-minilm.txt)
+minilm: abstained on ['q5', 'q7', 'q8', 'q9']
 ```
 
 How to read it:
@@ -76,28 +76,29 @@ How to read it:
 - **`retrieval_hit_rate` (@3) is meaningless here.** The corpus is 3 chunks and k=3, so every chunk is always retrieved. `hit_rate_at_1` is the retrieval number that means something.
 - **`mean_faithfulness` = 1.0 is by construction.** The reader copies a sentence from the context, so its tokens are always in the context. The metric only becomes informative once a generative reader is swapped in.
 - **The wifi question (q4) abstains**, as does "Who is the CEO" (q9).
-- **`golden_hard.json` shows the real weakness.** These are paraphrased questions ("When will my refund reach my card?"). The lexical abstain gate refused 3 answerable questions (q5, q7, q8). The gate does not depend on the embedder, so a better embedder can improve `hit_rate_at_1` but **will not** fix these false refusals. The fix is a cosine threshold calibrated per embedder on a labelled set. That work has not been done yet.
-- Latency is sub-millisecond, noisy run to run, and excludes any LLM call. Do not quote it.
+- **MiniLM ranks better.** `hit_rate_at_1` goes from 0.667 to 1.0 on the easy set and from 0.75 to 1.0 on the paraphrase set. On 3 and 4 answerable questions, that's one question each.
+- **`golden_hard.json` shows the real weakness, and MiniLM doesn't fix it.** These are paraphrased questions ("When will my refund reach my card?"). The lexical abstain gate refused 3 answerable questions (q5, q7, q8) under both embedders, so `abstain_accuracy` stays at 0.4. That was the prediction before MiniLM was run: the gate checks word overlap, not the embedding score, so a better embedder can't change what it refuses. The fix is a cosine threshold calibrated per embedder on a labelled set. That work has not been done yet.
+- Latency depends on the machine and excludes any LLM call. MiniLM's ~10 ms per question against the hashing embedder's ~0.1 ms is the expected order of difference, nothing more. Do not quote it.
 - n=4 and n=5. These are smoke tests, not a benchmark.
 
 ## Web demo
 
-`docs/walkthrough.js` ([live](https://outview.co.za/case-study-rag-eval/)) is an interactive page that runs `app/chunk.py`, `embed.py`, `store.py`, `rag.py`, `eval.py` and `web/driver.py`, unchanged, in the visitor's browser with [Pyodide](https://pyodide.org), using the hashing embedder. It shows each question's content words, the retrieved chunks with their scores and gate overlap, and runs `run_eval` on both golden sets live. The MiniLM column says "not measured" because MiniLM has never been run on these sets.
+`docs/walkthrough.js` ([live](https://outview.co.za/case-study-rag-eval/)) is an interactive page that runs `app/chunk.py`, `embed.py`, `store.py`, `rag.py`, `eval.py` and `web/driver.py`, unchanged, in the visitor's browser with [Pyodide](https://pyodide.org), using the hashing embedder. It shows each question's content words, the retrieved chunks with their scores and gate overlap, and runs `run_eval` on both golden sets live. MiniLM can't run in a browser, so its column shows the recorded figures from `results/compare.md`, labelled as recorded.
 
 ```bash
 python web/build.py        # rebuilds docs/walkthrough.js from web/page.js, app/ and data/
 ```
 
-`tests/test_web_demo.py` fails if the built page is out of date, checks every example on the page behaves as its note says, and checks the live eval reproduces the numbers above. Every page question and both evals were also run in Pyodide 0.26.4 under Node and matched CPython exactly.
+`tests/test_web_demo.py` fails if the built page is out of date, checks every example on the page behaves as its note says, and checks the live eval reproduces the numbers above, and checks the page's recorded MiniLM figures match `results/compare.md`. Every page question and both evals were also run in Pyodide 0.26.4 under Node and matched CPython exactly.
 
 ## Tests
 
-`tests/test_rag.py` (original), `tests/test_embedders.py` and `tests/test_web_demo.py` (21 pass, 1 skipped):
+`tests/test_rag.py` (original), `tests/test_embedders.py` and `tests/test_web_demo.py` (22 pass, 1 skipped):
 
 - MiniLM import stays lazy. A missing package raises a clear `EmbedderUnavailable`.
 - A stub `SentenceTransformer` proves MiniLM plugs into the same store and eval. It tests the wiring, not the quality.
 - The wifi question abstains under both embedders.
-- `test_real_minilm_if_available` runs the real model when it can load, and skips otherwise. It was **skipped** in the run recorded here.
+- `test_real_minilm_if_available` runs the real model when it can load, and skips otherwise. It is skipped in the cloud workspace, which can't download the weights. The real model's scores come from the comparison workflow instead.
 
 ## What I would not ship
 
