@@ -78,11 +78,11 @@
     "th{background:#0d111b;color:var(--dim);font-weight:600;font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}",
     "td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}",
     "td.nw{white-space:nowrap}",
-    "td.t{color:var(--dim);min-width:220px}",
+    "td.t{color:var(--dim);min-width:160px}",
     ".callout{border-left:3px solid var(--warn);background:rgba(251,191,36,.08);padding:10px 12px;border-radius:8px;color:#fde68a;font-size:.88rem;margin-top:12px}",
     "ul.plain{margin:8px 0 0;padding-left:18px;color:var(--dim)}ul.plain li{margin:6px 0}",
     ".foot{margin-top:44px;padding-top:20px;border-top:1px solid var(--line);font-size:.86rem}",
-    "@media (max-width:520px){.ask{flex-direction:column}.btn{width:100%}}"
+    "@media (max-width:520px){.ask{flex-direction:column}.btn{width:100%}th{white-space:normal}td.m{min-width:120px}}"
   ].join("");
 
   var EXAMPLES = [
@@ -209,12 +209,12 @@
       ["Refused or answered correctly", r.abstain_accuracy],
       ["Faithfulness", r.mean_faithfulness]
     ].map(function (p) {
-      return "<tr><td>" + esc(p[0]) + "</td><td class='n'><b>" + (p[1] == null ? "n/a" : esc(p[1])) + "</b></td><td class='dimc'>not measured</td></tr>";
+      return "<tr><td class='m'>" + esc(p[0]) + "</td><td class='n'><b>" + (p[1] == null ? "n/a" : esc(p[1])) + "</b></td><td class='dimc'>not measured</td></tr>";
     }).join("");
     $("#evout").innerHTML =
       "<h3 style='margin-top:18px'>" + esc(label) + ": " + r.n + " questions</h3>" +
       "<div class='tbl'><table><thead><tr><th>ID</th><th>Question</th><th>Expected</th><th>Ranked first</th><th>Hit@1</th><th>Refused right?</th></tr></thead><tbody>" + rows + "</tbody></table></div>" +
-      "<div class='tbl'><table><thead><tr><th>Metric</th><th>Hashing (live, just now)</th><th>MiniLM</th></tr></thead><tbody>" + m + "</tbody></table></div>" +
+      "<div class='tbl'><table><thead><tr><th>Metric</th><th>Hashing (live)</th><th>MiniLM</th></tr></thead><tbody>" + m + "</tbody></table></div>" +
       "<p style='font-size:.84rem;margin-top:10px'>Computed in your browser by the repo's <code>run_eval</code>, with the same inputs as <code>make eval</code>. MiniLM has never been run on these sets (see section 4).</p>";
   }
 
